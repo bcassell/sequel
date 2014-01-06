@@ -1203,17 +1203,21 @@ module Sequel
 
       # Insert given values into the database.
       def insert(*values)
+        puts @opts.inspect
         if @opts[:returning]
           # already know which columns to return, let the standard code
           # handle it
+          puts 'returning'
           super
         elsif @opts[:sql]
           # raw SQL used, so don't know which table is being inserted
           # into, and therefore can't determine primary key.  Run the
           # insert statement and return nil.
+          puts 'sql'
           super
           nil
         else
+          puts 'else'
           # Force the use of RETURNING with the primary key value.
           returning(insert_pk).insert(*values){|r| return r.values.first}
         end
