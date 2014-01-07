@@ -1203,23 +1203,19 @@ module Sequel
 
       # Insert given values into the database.
       def insert(*values)
-        puts @opts.inspect
         if @opts[:returning]
           # already know which columns to return, let the standard code
           # handle it
-          puts 'returning'
           super
         elsif @opts[:sql]
           # raw SQL used, so don't know which table is being inserted
           # into, and therefore can't determine primary key.  Run the
           # insert statement and return nil.
-          puts 'sql'
           super
           nil
         else
-          puts 'else'
           # Force the use of RETURNING with the primary key value.
-          returning(insert_pk).insert(*values){|r| return r.values.first}
+          returning(insert_pk).insert(*values){|r| return r.values}
         end
       end
 
@@ -1332,12 +1328,15 @@ module Sequel
       # is only set to return a single columns, return an array of just that column.
       # Otherwise, return an array of hashes.
       def _import(columns, values, opts=OPTS)
+        puts 'called'
         if @opts[:returning]
+          puts 'returning'
           statements = multi_insert_sql(columns, values)
           @db.transaction(opts.merge(:server=>@opts[:server])) do
             statements.map{|st| returning_fetch_rows(st)}
           end.first.map{|v| v.length == 1 ? v.values.first : v}
         elsif opts[:return] == :primary_key
+          puts 'primary'
           returning(insert_pk)._import(columns, values, opts)
         else
           super
